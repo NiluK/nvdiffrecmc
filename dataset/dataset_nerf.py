@@ -21,16 +21,22 @@ from dataset import Dataset
 # NERF image based dataset (synthetic)
 ###############################################################################
 
+import os
+
 def _load_img(path):
-    files = glob.glob(path + '.*')
-    assert len(files) > 0, "Tried to find image file for: %s, but found 0 files" % (path)
-    img = util.load_image_raw(files[0])
+    if os.path.exists(path):
+        img = util.load_image_raw(path)
+    else:
+        files = glob.glob(path + '.*')
+        assert len(files) > 0, "Tried to find image file for: %s, but found 0 files" % (path)
+        img = util.load_image_raw(files[0])
     if img.dtype != np.float32: # LDR image
         img = torch.tensor(img / 255, dtype=torch.float32)
         img[..., 0:3] = util.srgb_to_rgb(img[..., 0:3])
     else:
         img = torch.tensor(img, dtype=torch.float32)
     return img
+
 
 class DatasetNERF(Dataset):
     def __init__(self, cfg_path, FLAGS, examples=None):
